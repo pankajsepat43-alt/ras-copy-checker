@@ -2,7 +2,7 @@ import os, base64, json, requests
 from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 HTML = r"""<!doctype html>
