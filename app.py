@@ -73,13 +73,31 @@ Return ONLY JSON:
     url=f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
     payload={"contents":[{"parts":parts}],"generationConfig":{"responseMimeType":"application/json","temperature":0.1}}
     try:
-        rr=requests.post(url,json=payload,timeout=180)
-        if not rr.ok:
-            return jsonify(error="Gemini error: "+rr.text[:500]),502
-        text=rr.json()["candidates"][0]["content"]["parts"][0]["text"]
-        return jsonify(json.loads(text))
-    except Exception as e:
-        return jsonify(error=str(e)),500
+    for attempt in range(3):
+        rr = requests.post(url, json=payload, timeout=60)
+
+        if rr.ok:
+            text = rr.json()["candidates"][0]["content"]["parts"][0]["text"]
+            return jsonify(json.loads(text))
+
+        if rr.status_code in [429, 500, 502, 503, 504]:
+            import time
+            time.sleep(2 ** attempt)
+            continue
+
+        return jsonify(error="Gemini error: " + rr.text)
+
+    return jsonify(error="Gemini service temporarily unavailable. Please try again.")
+
+except Exception as e:
+    return jsonify(error=str(e))
+        
+        
+            
+        
+        
+    
+     
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.getenv("PORT","5000")))
